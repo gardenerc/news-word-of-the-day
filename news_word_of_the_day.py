@@ -1,8 +1,7 @@
 import requests
 from collections import Counter
-import re
 import tkinter as tk
-from tkinter import font as tkfont
+from tkinter import ttk
 
 def fetch_headlines(api_key):
     url = f'https://newsapi.org/v2/top-headlines?country=us&apiKey={api_key}'
@@ -11,65 +10,48 @@ def fetch_headlines(api_key):
     headlines = [article['title'] for article in data['articles']]
     return headlines
 
-def find_interesting_words(headlines):
-    common_words = {
-    'a', 'an', 'the', 'and', 'of', 'to', 'in', 'on', 'for', 'with', 'as', 'at', 'by', 'from', 'that', 'which', 'who', 'whom',
-    'whose', 'this', 'these', 'those', 'there', 'where', 'when', 'how', 'why', 'or', 'but', 'so', 'if', 'then', 'else',
-    'while', 'than', 'either', 'each', 'any', 'all', 'some', 'one', 'two', 'three', 'four', 'five', 'first', 'next', 'last',
-    'many', 'much', 'several', 'few', 'less', 'own', 'other', 'out', 'old', 'new', 'good', 'bad', 'high', 'low', 'best',
-    'least', 'own', 'other', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'hundred',
-    'thousand', 'first', 'second', 'third', 'next', 'last', 'many', 'several', 'few', 'less', 'own', 'other', 'former',
-    'latter', 'own', 'other', 'off', 'often', 'likely', 'so', 'such', 'own', 'other', 'own', 'other', 'news', 'cbs', 'says',
-    'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday', 'january', 'february', 'march', 'april',
-    'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'
-}
+def extract_interesting_words(headlines):
+    common_words = {'a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'for', 'from', 'has', 'have', 'in', 'is', 'it', 'of', 'on', 'or', 'that', 'the', 'to', 'with'}
+    news_outlet_names = {'abc', 'cbs', 'cnn', 'fox', 'nbc', 'nyt', 'reuters', 'wsj'}
+    generic_business_terms = {'business', 'company', 'market', 'stock', 'economy', 'economic', 'trade', 'finance', 'financial', 'industry', 'sector', 'product', 'service', 'consumer', 'job', 'employment', 'unemployment', 'growth', 'decline', 'rate', 'percentage', 'price', 'cost', 'value', 'profit', 'loss', 'revenue', 'sales', 'income', 'tax', 'budget', 'deficit', 'surplus'}
 
-# Add the new categories of common words here
-days_of_the_week = {'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'}
-months = {'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'}
-numbers_in_words = {'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'}
-generic_political_terms = {'government', 'president', 'senate', 'congress', 'court', 'law', 'bill', 'vote', 'election', 'party', 'republican', 'democrat', 'policy', 'leader', 'official', 'administration', 'state', 'federal', 'local', 'city', 'country', 'national', 'international', 'global'}
-generic_business_terms = {'business', 'company', 'market', 'stock', 'economy', 'economic', 'trade', 'finance', 'financial', 'industry', 'sector', 'product', 'service', 'consumer', 'job', 'employment', 'unemployment', 'growth', 'decline', 'rate', 'percentage', 'price', 'cost', 'value', 'profit', 'loss', 'revenue', 'sales', 'income', 'tax', 'budget', 'deficit', 'sur
+    words_to_exclude = common_words | news_outlet_names | generic_business_terms
 
-    words = [word.lower() for headline in headlines for word in re.findall(r'\b\w+\b', headline) if word.lower() not in common_words]
-    word_counts = Counter(words)
-    interesting_words = word_counts.most_common(4)
-    return interesting_words
+    words = []
+    for headline in headlines:
+        for word in headline.split():
+            word = word.lower().strip('.,;:!?"()[]{}<>')
+            if word not in words_to_exclude and word.isalpha():
+                words.append(word)
 
-def find_example_headlines(interesting_words, headlines):
-    example_headlines = []
-    for word, _ in interesting_words:
-        for headline in headlines:
-            if word in headline.lower():
-                example_headlines.append((word, headline))
-                break
-    return example_headlines
+    return words
 
-def create_gui(example_headlines):
+def find_most_common_words(words, n=4):
+    counter = Counter(words)
+    most_common_words = counter.most_common(n)
+    return most_common_words
+
+def main(api_key):
+    headlines = fetch_headlines(api_key)
+    words = extract_interesting_words(headlines)
+    most_common_words = find_most_common_words(words)
+
+    # Create a tkinter window
     root = tk.Tk()
     root.title("News Word of the Day")
-    root.configure(bg='#1DA1F2')
 
-    bold_font = tkfont.Font(weight='bold')
+    bg_color = "#1A73E8"
+    root.configure(background=bg_color)
 
-    description_label = tk.Label(root, text="The 4 most frequent interesting words in today's news headlines:", bg='#1DA1F2', font=bold_font)
-    description_label.pack(pady=10)
+    label = ttk.Label(root, text="Today's most frequent interesting words in the news:", background=bg_color, foreground="white", font=("Arial", 14))
+    label.pack(pady=10)
 
-    for word, headline in example_headlines:
-        word_label = tk.Label(root, text=f"{word}:", bg='#1DA1F2', font=bold_font)
-        word_label.pack(anchor='w')
-
-        example_label = tk.Label(root, text=headline, bg='#1DA1F2', wraplength=600, justify='left')
-        example_label.pack(anchor='w', padx=20)
+    for word, count in most_common_words:
+        word_label = ttk.Label(root, text=f"{word} ({count} times)", background=bg_color, foreground="white", font=("Arial", 12))
+        word_label.pack()
 
     root.mainloop()
 
-def main():
-    api_key = '8856e4b4e7b74fa091fa9bbd2c194766'
-    headlines = fetch_headlines(api_key)
-    interesting_words = find_interesting_words(headlines)
-    example_headlines = find_example_headlines(interesting_words, headlines)
-    create_gui(example_headlines)
-
 if __name__ == '__main__':
-    main()
+    api_key = '8856e4b4e7b74fa091fa9bbd2c194766'
+    main(api_key)

@@ -12,7 +12,25 @@ def fetch_headlines(api_key):
     return headlines
 
 def find_interesting_words(headlines):
-    common_words = {'the', 'and', 'in', 'a', 'to', 'of', 'on', 'for', 'with'}
+    common_words = {
+    'a', 'an', 'the', 'and', 'of', 'to', 'in', 'on', 'for', 'with', 'as', 'at', 'by', 'from', 'that', 'which', 'who', 'whom',
+    'whose', 'this', 'these', 'those', 'there', 'where', 'when', 'how', 'why', 'or', 'but', 'so', 'if', 'then', 'else',
+    'while', 'than', 'either', 'each', 'any', 'all', 'some', 'one', 'two', 'three', 'four', 'five', 'first', 'next', 'last',
+    'many', 'much', 'several', 'few', 'less', 'own', 'other', 'out', 'old', 'new', 'good', 'bad', 'high', 'low', 'best',
+    'least', 'own', 'other', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'hundred',
+    'thousand', 'first', 'second', 'third', 'next', 'last', 'many', 'several', 'few', 'less', 'own', 'other', 'former',
+    'latter', 'own', 'other', 'off', 'often', 'likely', 'so', 'such', 'own', 'other', 'own', 'other', 'news', 'cbs', 'says',
+    'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday', 'january', 'february', 'march', 'april',
+    'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'
+}
+
+# Add the new categories of common words here
+days_of_the_week = {'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'}
+months = {'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'}
+numbers_in_words = {'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'}
+generic_political_terms = {'government', 'president', 'senate', 'congress', 'court', 'law', 'bill', 'vote', 'election', 'party', 'republican', 'democrat', 'policy', 'leader', 'official', 'administration', 'state', 'federal', 'local', 'city', 'country', 'national', 'international', 'global'}
+generic_business_terms = {'business', 'company', 'market', 'stock', 'economy', 'economic', 'trade', 'finance', 'financial', 'industry', 'sector', 'product', 'service', 'consumer', 'job', 'employment', 'unemployment', 'growth', 'decline', 'rate', 'percentage', 'price', 'cost', 'value', 'profit', 'loss', 'revenue', 'sales', 'income', 'tax', 'budget', 'deficit', 'sur
+
     words = [word.lower() for headline in headlines for word in re.findall(r'\b\w+\b', headline) if word.lower() not in common_words]
     word_counts = Counter(words)
     interesting_words = word_counts.most_common(4)
